@@ -1,0 +1,30 @@
+name: Run Windows QEMU
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Setup tmate
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Install QEMU
+        run: |
+          sudo apt update
+          sudo apt install -y qemu-system-x86 wget
+
+      - name: Download Windows ISO and start VM
+        run: |
+          wget -O win.iso https://archive.org/download/Win10ProLitev1803ITAx64/Isox64.iso
+          qemu-img create -f qcow2 disk.qcow2 20G
+          nohup qemu-system-x86_64 \
+            -m 4G -smp 2 -cpu qemu64 \
+            -drive file=disk.qcow2,format=qcow2 \
+            -cdrom win.iso \
+            -boot d \
+            -net nic -net user,hostfwd=tcp::3389-:3389 \
+            -vnc :0 &
+            
