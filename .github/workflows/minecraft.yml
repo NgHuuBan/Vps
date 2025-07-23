@@ -11,19 +11,27 @@ jobs:
     - name: Cài Java 21 (Temurin)
       run: |
         sudo apt update
-        sudo apt install -y wget tar curl
+        sudo apt install -y wget tar curl gpg
         wget https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jre_x64_linux_hotspot_21.0.3_9.tar.gz
         mkdir -p ~/java21
         tar -xzf OpenJDK21U-jre_x64_linux_hotspot_21.0.3_9.tar.gz -C ~/java21 --strip-components=1
         echo "JAVA_HOME=$HOME/java21" >> $GITHUB_ENV
         echo "$HOME/java21/bin" >> $GITHUB_PATH
 
-    - name: Chạy playit.gg để mở port Minecraft
+    - name: Tạo thư mục server nếu chưa có
+      run: mkdir -p server
+
+    - name: Cài đặt playit từ repo chính thức
+      run: |
+        curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
+        echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
+        sudo apt update
+        sudo apt install -y playit
+
+    - name: Khởi chạy playit.gg để mở port Minecraft
       working-directory: server
       run: |
-        wget https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64 -O playit
-        chmod +x playit
-        ./playit > playit.log &
+        playit > playit.log &
         sleep 10
         echo "🌐 Link Minecraft (playit.gg):"
         grep -oP 'tcp:\/\/.*playit\.gg:\d+' playit.log || echo "⏳ Đang chờ port..."
