@@ -1,0 +1,25 @@
+name: Download paper.jar into server/
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download-paper:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Tạo thư mục server và tải paper.jar
+      run: |
+        mkdir -p server
+        curl -L -o server/paper.jar https://api.papermc.io/v2/projects/paper/versions/1.21.4/builds/232/downloads/paper-1.21.4-232.jar
+
+    - name: Push vào repo
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "actions@github.com"
+        git clone https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} repo
+        cp -r server repo/server
+        cd repo
+        git add server
+        git commit -m "Thêm paper.jar vào server/"
+        git push
+        
