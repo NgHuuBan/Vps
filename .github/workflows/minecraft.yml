@@ -1,4 +1,4 @@
-name: Run Minecraft Server 7GB (paper.jar trong thư mục server/)
+name: Run Minecraft Server 7GB (paper.jar tự tải vào server/)
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
     - name: Tạo thư mục server nếu chưa có
       run: mkdir -p server
 
-    - name: Cài đặt playit từ repo chính thức
+    - name: Cài playit từ repo chính thức
       run: |
         curl -SsL https://playit-cloud.github.io/ppa/key.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/playit.gpg >/dev/null
         echo "deb [signed-by=/etc/apt/trusted.gpg.d/playit.gpg] https://playit-cloud.github.io/ppa/data ./" | sudo tee /etc/apt/sources.list.d/playit-cloud.list
@@ -35,6 +35,17 @@ jobs:
         sleep 10
         echo "🌐 Link Minecraft (playit.gg):"
         grep -oP 'tcp:\/\/.*playit\.gg:\d+' playit.log || echo "⏳ Đang chờ port..."
+
+    - name: Tải paper.jar nếu chưa có
+      working-directory: server
+      run: |
+        if [ ! -f paper.jar ]; then
+          curl -L -o paper.jar https://api.papermc.io/v2/projects/paper/versions/1.21.4/builds/232/downloads/paper-1.21.4-232.jar
+        fi
+
+    - name: Tạo file eula.txt tự động
+      working-directory: server
+      run: echo "eula=true" > eula.txt
 
     - name: Chạy Minecraft server từ server/paper.jar (7GB)
       working-directory: server
