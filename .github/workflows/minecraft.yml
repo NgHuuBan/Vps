@@ -1,4 +1,4 @@
-name: Minecraft Server 7GB with Playit + Push to Repo
+name: Minecraft Server 7GB with playit.gg + Java 21 + Push
 
 on:
   workflow_dispatch:
@@ -18,15 +18,12 @@ jobs:
         echo "JAVA_HOME=$HOME/java21" >> $GITHUB_ENV
         echo "$HOME/java21/bin" >> $GITHUB_PATH
 
-    - name: Tạo thư mục server
-      run: mkdir -p server
-
-    - name: Tải PaperMC 1.21.4 build 232
-      working-directory: server
+    - name: Tạo thư mục server và copy paper.jar từ repo
       run: |
-        curl -L -o paper.jar https://api.papermc.io/v2/projects/paper/versions/1.21.4/builds/232/downloads/paper-1.21.4-232.jar
+        mkdir -p server
+        cp paper.jar server/
 
-    - name: Chạy Playit.gg để mở port Minecraft
+    - name: Chạy playit.gg để mở port Minecraft
       working-directory: server
       run: |
         wget https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64 -O playit
@@ -36,11 +33,11 @@ jobs:
         echo "🌐 Link Minecraft (playit.gg):"
         grep -oP 'tcp:\/\/.*playit\.gg:\d+' playit.log || echo "⏳ Chờ thêm vài giây..."
 
-    - name: Chạy Minecraft server 7GB
+    - name: Chạy Minecraft server 7GB (sử dụng file có sẵn)
       working-directory: server
       run: |
         java -Xmx7G -Xms7G -jar paper.jar nogui || true
-        echo "✅ Server đã tắt — giữ job chạy tiếp 6 tiếng"
+        echo "✅ Server đã tắt — giữ job hoạt động thêm 6 tiếng"
         sleep 6h
 
     - name: Push thư mục server vào repo
@@ -51,6 +48,6 @@ jobs:
         cp -r server repo-clone/server
         cd repo-clone
         git add server
-        git commit -m "📦 Cập nhật tự động thư mục server sau khi chạy workflow"
+        git commit -m "📦 Cập nhật tự động thư mục server (map, log...)"
         git push
         
