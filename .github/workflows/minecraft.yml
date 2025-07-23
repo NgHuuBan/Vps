@@ -1,4 +1,4 @@
-name: Minecraft Server 7GB with Playit (Java 21, 6h)
+name: Minecraft Server 7GB with Playit + Push to Repo
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
     - name: Cài Java 21 (Temurin)
       run: |
         sudo apt update
-        sudo apt install -y wget tar
+        sudo apt install -y wget tar git curl
         wget https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jre_x64_linux_hotspot_21.0.3_9.tar.gz
         mkdir -p ~/java21
         tar -xzf OpenJDK21U-jre_x64_linux_hotspot_21.0.3_9.tar.gz -C ~/java21 --strip-components=1
@@ -26,7 +26,7 @@ jobs:
       run: |
         curl -L -o paper.jar https://api.papermc.io/v2/projects/paper/versions/1.21.4/builds/232/downloads/paper-1.21.4-232.jar
 
-    - name: Tải & chạy playit.gg (mở port)
+    - name: Chạy Playit.gg để mở port Minecraft
       working-directory: server
       run: |
         wget https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64 -O playit
@@ -36,9 +36,21 @@ jobs:
         echo "🌐 Link Minecraft (playit.gg):"
         grep -oP 'tcp:\/\/.*playit\.gg:\d+' playit.log || echo "⏳ Chờ thêm vài giây..."
 
-    - name: Chạy Minecraft Server (Java 21, 7GB RAM)
+    - name: Chạy Minecraft server 7GB
       working-directory: server
       run: |
         java -Xmx7G -Xms7G -jar paper.jar nogui || true
-        echo "✅ S
+        echo "✅ Server đã tắt — giữ job chạy tiếp 6 tiếng"
+        sleep 6h
+
+    - name: Push thư mục server vào repo
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "actions@github.com"
+        git clone https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} repo-clone
+        cp -r server repo-clone/server
+        cd repo-clone
+        git add server
+        git commit -m "📦 Cập nhật tự động thư mục server sau khi chạy workflow"
+        git push
         
