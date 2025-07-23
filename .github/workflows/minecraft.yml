@@ -1,0 +1,35 @@
+name: Minecraft Server 7GB with Playit (Paper 1.21.4)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mc-server:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Cài Java 21
+      run: sudo apt update && sudo apt install -y openjdk-21-jre-headless
+
+    - name: Tạo thư mục server
+      run: mkdir -p server
+
+    - name: Tải PaperMC 1.21.4 build 232
+      working-directory: server
+      run: |
+        curl -L -o paper.jar https://api.papermc.io/v2/projects/paper/versions/1.21.4/builds/232/downloads/paper-1.21.4-232.jar
+
+    - name: Tải và chạy playit.gg (mở port)
+      working-directory: server
+      run: |
+        wget https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-linux-amd64 -O playit
+        chmod +x playit
+        ./playit > playit.log &
+        sleep 10
+        echo "🌐 Link Minecraft (playit.gg):"
+        grep -oP 'tcp:\/\/.*playit\.gg:\d+' playit.log || echo "⏳ Chờ thêm vài giây..."
+
+    - name: Chạy Minecraft Server (7GB RAM)
+      working-directory: server
+      run: java -Xmx7G -Xms7G -jar paper.jar nogui
+      
